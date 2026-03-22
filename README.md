@@ -2,23 +2,22 @@
 
 <br/>
 
-```
-███████╗██╗   ██╗███████╗██╗     ███████╗ █████╗ ██████╗ ███╗   ██╗
-██╔════╝╚██╗ ██╔╝██╔════╝██║     ██╔════╝██╔══██╗██╔══██╗████╗  ██║
-███████╗ ╚████╔╝ ███████╗██║     █████╗  ███████║██████╔╝██╔██╗ ██║
-╚════██║  ╚██╔╝  ╚════██║██║     ██╔══╝  ██╔══██║██╔══██╗██║╚██╗██║
-███████║   ██║   ███████║███████╗███████╗██║  ██║██║  ██║██║ ╚████║
-╚══════╝   ╚═╝   ╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝
-```
-
-### *Paste a GitHub URL. Learn system design. Automate your workflow.*
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=14&duration=3000&pause=1000&color=4A9EFF&center=true&vCenter=true&width=435&lines=Paste+a+GitHub+URL.;Learn+its+system+design.;Understand+any+codebase." alt="Typing SVG" />
 
 <br/>
 
-[![Stars](https://img.shields.io/github/stars/your-username/syslearn?style=for-the-badge&color=FFD700&labelColor=0d0d0d)](https://github.com)
-[![License](https://img.shields.io/badge/license-MIT-00FF9F?style=for-the-badge&labelColor=0d0d0d)](LICENSE)
-[![Built for Hackathon](https://img.shields.io/badge/built_for-hackathon-FF4D6D?style=for-the-badge&labelColor=0d0d0d)](#)
-[![Free to use](https://img.shields.io/badge/cost-$0-00FF9F?style=for-the-badge&labelColor=0d0d0d)](#apis)
+# ◈ SysLearn AI
+
+### *Turn any GitHub repository into an interactive system design lesson.*
+
+<br/>
+
+[![Live Demo](https://img.shields.io/badge/▶_Live_Demo-4a9eff?style=for-the-badge&logoColor=white)](https://syslearn-ai.vercel.app)
+[![Made with React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org)
+[![Powered by Gemini](https://img.shields.io/badge/Gemini_2.0_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://aistudio.google.com)
+[![Groq](https://img.shields.io/badge/Groq_LLaMA_3.3-F55036?style=for-the-badge&logoColor=white)](https://console.groq.com)
+[![License MIT](https://img.shields.io/badge/License-MIT-34d399?style=for-the-badge)](LICENSE)
+[![Free to use](https://img.shields.io/badge/Cost-$0-34d399?style=for-the-badge)](##apis)
 
 <br/>
 
@@ -30,282 +29,311 @@
 
 ## 🧠 What is SysLearn?
 
-I built this because I kept getting lost reading large open-source codebases. You'd clone a repo, stare at 200 files, and have no idea where anything connects. I wanted something that could just *explain it to me* — like a senior engineer sitting next to me, walking through the architecture.
+I built this because learning system design from real codebases is painful. You clone a repo, stare at hundreds of files, and have no idea where anything connects. There's no shortcut — you just read everything and hope something clicks.
 
-So SysLearn does exactly that:
-
-1. **You paste a GitHub URL**
-2. It reads the most important files automatically
-3. An AI explains the system design — components, data flow, decisions
-4. You get an animated diagram, voice narration, and a chat interface to ask follow-up questions
-5. It can even scaffold the project folder structure locally for you
-
-No installations. No paid APIs. Just a URL.
+**SysLearn automates that entire process.** Paste any public GitHub URL and within 30 seconds you get a full interactive system design lesson — generated live from the actual code, not a generic template.
 
 <br/>
 
 ---
 
-## 🖼️ How it looks
-
-<div align="center">
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                                                             │
-│   📎 https://github.com/vercel/next.js          [Teach me] │
-│                                                             │
-├──────────────────────────┬──────────────────────────────────┤
-│                          │                                  │
-│   📊 DIAGRAM             │   🎙 VOICE LESSON                │
-│                          │                                  │
-│   [Client]               │   "Next.js is a React framework  │
-│      │                   │   with a file-based router. The  │
-│      ▼                   │   server component model splits  │
-│   [Router]               │   rendering between the edge     │
-│    /  \                  │   and the client..."             │
-│   ▼    ▼                 │                                  │
-│ [SSR][API]               │   ▶ Play  ⏸ Pause  ↩ Replay    │
-│                          │                                  │
-├──────────────────────────┴──────────────────────────────────┤
-│  💬 Ask anything...                              [Send →]   │
-└─────────────────────────────────────────────────────────────┘
-```
-
-</div>
-
 <br/>
-
----
 
 ## ✨ Features
 
-| Feature | What it does |
-|---|---|
-| 🔍 **Smart File Picker** | Scores and ranks files by importance — skips tests, lock files, node_modules |
-| 🗺 **Live Architecture Diagram** | Generates Mermaid diagrams directly from the code |
-| 🎙 **Voice Narration** | Browser-native text-to-speech, free, no API needed |
-| 💬 **Chat Tutor** | Ask follow-up questions, get mentor-style answers |
-| 📁 **Local Scaffolding** | Generates shell commands to mirror the repo's folder structure locally |
-| 🔄 **File Watcher** | Watch a folder and get AI suggestions as you add files |
-| 🔁 **AI Fallback Router** | Gemini → Groq → message. Never dies during a demo |
+<br/>
+
+| | Feature | What it does |
+|---|---|---|
+| ◈ | **Architecture Analysis** | 5-6 paragraph deep breakdown — patterns, data flow, design decisions, scalability considerations |
+| ⬡ | **Live Diagram** | Auto-generated Mermaid flowchart of components and how they connect |
+| ▶ | **Voice Walkthrough** | Natural voice narration of every section. Hit play and just listen |
+| ◎ | **System Design Lessons** | Real patterns extracted from this specific codebase, not textbook theory |
+| ⊕ | **Deep Dive** | Technical breakdown of specific files, functions, and patterns in the repo |
+| ◉ | **Chat Tutor** | Ask anything — get mentor-level answers grounded in the actual code |
+| ⌥ | **Contributor Guide** | Exactly where to start reading, what matters, how to trace a request |
 
 <br/>
 
 ---
 
-## 🏗 Architecture
+<br/>
+
+## 🖥️ How it looks
 
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│                          React Frontend                              │
-│                                                                      │
-│   UrlInput → SmartChunker → AI Router → LessonPlayer → ChatPanel    │
-└─────────────────────────────────┬────────────────────────────────────┘
-                                  │
-                    ┌─────────────┼─────────────┐
-                    ▼             ▼              ▼
-            GitHub REST API   Gemini 1.5     Groq API
-            (file fetching)   (analysis)    (chat Q&A)
-                    │             │              │
-                    └─────────────┴──────────────┘
-                                  │
-                    ┌─────────────▼────────────────┐
-                    │   Mermaid.js  +  Web Speech   │
-                    │   (diagrams)  +  (narration)  │
-                    └──────────────────────────────┘
-```
+┌─────────────────────────────────────────────────────────────────────┐
+│  ◈ SysLearn                                          ● Keys saved   │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│        Understand any codebase in minutes                           │
+│                                                                     │
+│   ┌─────────────────────────────────────────────────────────────┐   │
+│   │ ⌥  https://github.com/tiangolo/fastapi      [ Analyze → ]  │   │
+│   └─────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+│   Try: facebook/react  expressjs/express  tiangolo/fastapi          │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 
-No backend. No server. Everything runs in the browser except the file watcher (tiny optional Node script).
+After analysis:
+
+┌──────────────────┬──────────────────────────────────────────────────┐
+│ ◈ SysLearn       │                                                  │
+│                  │  System Architecture              [ ▶ Listen ]   │
+│ tiangolo/fastapi │  ─────────────────────────────────────────────   │
+│                  │  FastAPI is built on a microframework pattern.    │
+│ FastAPI          │  At its core it wraps Starlette for ASGI and      │
+│ Python           │  Pydantic for type-safe data validation...        │
+│ Pydantic         │                                                  │
+│ OpenAPI          │  Components                                      │
+│                  │  ┌──────────┐ ┌──────────┐ ┌──────────────┐     │
+│ ◈ Architecture   │  │ Router   │ │ Depends  │ │ Pydantic     │     │
+│ ⬡ Diagram        │  │ Request  │ │ Injection│ │ Validation   │     │
+│ ◎ Lessons        │  └──────────┘ └──────────┘ └──────────────┘     │
+│ ⊕ Deep Dive      │                                                  │
+│ ⌥ Code Guide     ├──────────────────────────────────────────────────┤
+│ ◉ Chat Tutor  2  │  💬 How does dependency injection work here?      │
+│                  │  ─────────────────────────────────────────────   │
+│ ← New repo       │  AI: FastAPI's Depends() system works by...      │
+└──────────────────┴──────────────────────────────────────────────────┘
+```
 
 <br/>
 
 ---
 
-## 🚀 Getting started
+<br/>
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ installed → [nodejs.org](https://nodejs.org)
+- Free Gemini API key → [aistudio.google.com](https://aistudio.google.com)
+- Free Groq API key → [console.groq.com](https://console.groq.com)
+
+### Installation
 
 ```bash
-# Clone
-git clone https://github.com/your-username/syslearn.git
-cd syslearn
+# Clone the repo
+git clone https://github.com/nabilksabu/syslearn-ai.git
+cd syslearn-ai
 
-# Install
+# Install dependencies
 npm install
 
-# Add your free API keys to .env
-cp .env.example .env
-```
-
-Edit `.env`:
-
-```env
-VITE_GEMINI_KEY=your_key_here      # free at aistudio.google.com
-VITE_GROQ_KEY=your_key_here        # free at console.groq.com
-VITE_GITHUB_TOKEN=your_token_here  # free, just sign into GitHub
-```
-
-```bash
-# Run
+# Start dev server
 npm run dev
 ```
 
-Open `http://localhost:5173`, paste any public GitHub URL, hit **Teach me**.
+Open `http://localhost:5173`, click **+ Add keys**, paste your API keys, and you're ready.
+
+### Deploy to Vercel (free)
+
+```bash
+npm install -g vercel
+vercel
+```
+
+That's it. Vercel auto-detects Vite and deploys in ~60 seconds.
 
 <br/>
 
 ---
 
-## 🔑 APIs used (all free)
+<br/>
 
-| API | What it's used for | Free limit |
+## 🔑 APIs Used — Total Cost: $0
+
+| API | Purpose | Free Limit |
 |---|---|---|
-| [Gemini 1.5 Flash](https://aistudio.google.com) | Architecture analysis, large context | 1M tokens/day |
-| [Groq (Llama 3.1)](https://console.groq.com) | Chat Q&A, fast responses | 30 req/min |
-| [GitHub REST API](https://docs.github.com/en/rest) | Fetch repo file tree + contents | 5000 req/hr (with token) |
-| Web Speech API | Voice narration | Browser built-in, free forever |
+| [Gemini 2.0 Flash](https://aistudio.google.com) | Primary analysis — large context, deep reasoning | 1,500 req/day |
+| [Groq LLaMA 3.3 70B](https://console.groq.com) | Fallback + chat Q&A — ultra fast responses | 14,400 req/day |
+| [GitHub REST API](https://docs.github.com/en/rest) | Fetch repo file tree and contents | 5,000 req/hr |
+| Web Speech API | Voice narration | Browser built-in, always free |
 | Mermaid.js | Diagram rendering | Open source, client-side |
 
-**Total cost to run: $0.**
+**Smart fallback router:** if Gemini rate-limits, Groq automatically catches it. The app never dies during a demo.
 
 <br/>
 
 ---
 
-## 📁 Project structure
+<br/>
+
+## 🏗️ Architecture
 
 ```
-syslearn/
+┌─────────────────────────────────────────────────────────┐
+│                    React Frontend                        │
+│                                                         │
+│  UrlInput → SmartChunker → AI Router → LessonPlayer     │
+│                                ↓                        │
+│         ┌──────────────────────┼─────────────────┐      │
+│         ▼                      ▼                 ▼      │
+│    Architecture           Diagram Gen         Chat Q&A  │
+│    + Lessons              (Mermaid.js)        (Groq)    │
+│    + Deep Dive                                          │
+│    + Code Guide           Voice               Key Files │
+│                           (Web Speech)                  │
+└─────────────────────────────────────────────────────────┘
+         │                      │                 │
+         ▼                      ▼                 ▼
+   GitHub REST API        Gemini 2.0 Flash    Groq API
+   (file fetching)        (primary AI)        (fallback)
+```
+
+**No backend. No server costs. Everything runs in the browser** except API calls to Gemini/Groq which are proxied through Vite in development and directly in production.
+
+<br/>
+
+---
+
+<br/>
+
+## 📁 Project Structure
+
+```
+syslearn-ai/
 ├── src/
-│   ├── components/
-│   │   ├── UrlInput.jsx          # URL paste + parse
-│   │   ├── LessonPlayer.jsx      # Main learning UI
-│   │   ├── DiagramPanel.jsx      # Mermaid renderer
-│   │   ├── VoiceControls.jsx     # Web Speech wrapper
-│   │   └── ChatPanel.jsx         # Q&A interface
-│   ├── lib/
-│   │   ├── github.js             # File fetcher + smart ranker
-│   │   ├── chunker.js            # Token budget + file scoring
-│   │   ├── aiRouter.js           # Gemini → Groq fallback
-│   │   └── prompts.js            # System design prompt templates
-│   └── App.jsx
-├── watcher/
-│   └── watcher.js                # Optional local file watcher
-├── .env.example
-└── README.md
+│   ├── App.jsx              # Main app — all UI phases (home, loading, lesson)
+│   ├── App.css              # Full dark theme — DM Mono + Syne fonts
+│   └── lib/
+│       ├── github.js        # Repo fetcher + smart file scorer/ranker
+│       └── ai.js            # Gemini/Groq calls + prompt engine + fallback router
+├── vite.config.js           # Dev proxy for Gemini + Groq (avoids CORS)
+├── index.html
+└── package.json
 ```
 
 <br/>
 
 ---
 
-## 🧩 How the smart file picker works
+<br/>
 
-Not all files matter equally. The picker scores each file before sending anything to an AI:
+## 🧩 How the Smart File Picker Works
+
+Not all files matter equally. The picker scores every file before sending anything to AI:
 
 ```
-README.md            → priority 1   (always read this)
-package.json         → priority 2   (tells you the whole stack)
-main.py / index.js   → priority 3   (entry points)
-src/, lib/, core/    → priority 4   (actual logic)
-tests/, *.lock       → skip         (noise)
-node_modules/        → skip         (never)
+README.md              → score 100   always read first
+package.json           → score 98    reveals the whole stack
+main.py / index.js     → score 96    entry points
+src/ lib/ core/ api/   → score 50    actual business logic
+*.config.* *.yaml      → score 30    infrastructure hints
+tests/ *.lock          → score -1    skipped entirely
+node_modules/          → score -1    never touched
 ```
 
-Top 8–10 files get fetched. Total tokens capped at ~12,000 — safe for every free tier.
+Top 10 files get fetched. Token budget capped at ~12,000 — safe for every free tier and fast enough to feel instant.
 
 <br/>
 
 ---
 
-## 🤖 AI fallback router
+<br/>
 
-So the demo never dies:
+## 🤖 The Prompt Engine
 
-```js
-async function callAI(prompt) {
-  try {
-    return await callGemini(prompt)   // best free quota
-  } catch {
-    return await callGroq(prompt)     // fastest fallback
-  }
-}
+The AI is prompted to act as a **senior engineer teaching a student**, not a documentation generator. Key difference:
+
+```
+❌ "This file exports a function that handles HTTP requests."
+✅ "The router here uses a middleware chain pattern — every request
+    flows through auth → validation → handler in sequence. This is
+    the same pattern Express.js made famous, and it's why you can
+    add logging or rate limiting by just inserting a new middleware
+    without touching any handler code."
 ```
 
-Gemini handles big analysis. Groq handles snappy chat. If both fail, it says try again in 60s — but that's basically never during a normal session.
+The prompt asks for: architecture patterns, data flow, design decisions, scalability trade-offs, contributor guidance, and specific file references throughout.
 
 <br/>
 
 ---
 
-## 📁 Local file automation
+<br/>
 
-After the lesson, SysLearn can scaffold the project locally for you.
+## 🎯 Hackathon Theme — Automation in Daily Life
 
-The AI generates a shell script based on the repo's architecture:
+Developers spend **2-3 hours** every day reading unfamiliar codebases — to understand a new project, prepare for a PR review, or learn how a library works. It's repetitive, it's slow, and the process is identical every single time.
 
-```bash
-# Generated by SysLearn from github.com/expressjs/express
-mkdir -p src/routes src/middleware src/models src/utils
-touch src/index.js src/config.js
-echo "✅ Project structure ready"
+SysLearn automates that entire daily workflow:
+
 ```
-
-You review it. You run it. The AI doesn't touch your machine without you seeing exactly what it'll do.
-
-For ongoing projects, the optional file watcher suggests where new files should live based on the architecture:
-
-```bash
-node watcher/watcher.js --project ./my-project --arch express
-# 📁 auth.js created → suggest moving to: src/middleware/
+Manual process (2-3 hours)          SysLearn (30 seconds)
+──────────────────────────          ─────────────────────
+Clone repo                    →     Paste URL
+Find entry point manually     →     Smart file ranker does it
+Read 50+ files                →     AI reads and synthesizes
+Draw architecture mentally    →     Live diagram generated
+Google design patterns        →     Lessons extracted from code
+Ask a senior engineer         →     Chat tutor available instantly
 ```
 
 <br/>
 
 ---
 
-## 🎯 Hackathon theme fit
+<br/>
 
-The theme is **Automation in Daily Life**.
+## 🗺️ Roadmap
 
-Developers spend hours every day manually reading codebases to understand them before contributing. It's repetitive, slow, and no one talks about it. SysLearn automates that entire workflow:
-
-- Reading and filtering relevant files → **automated**
-- Understanding component relationships → **automated**
-- Building folder structure for a new project → **automated**
-- Getting up to speed on an unfamiliar repo → **automated**
-
-The "daily life" here is a developer's daily life. And that's a real problem.
+- [ ] Support private repos (GitHub OAuth)
+- [ ] Export lesson as PDF
+- [ ] Compare two repos side by side
+- [ ] Generate quiz questions from the codebase
+- [ ] Highlight which files to read in what order
+- [ ] VS Code extension
 
 <br/>
 
 ---
+
+<br/>
 
 ## 🤝 Contributing
 
-This started as a hackathon project. If you want to improve it:
+Contributions welcome. This started as a hackathon project with a lot of room to grow.
 
-1. Fork it
-2. Create a branch: `git checkout -b feature/your-idea`
-3. Push and open a PR
+```bash
+git checkout -b feature/your-idea
+# make your changes
+git commit -m "add: your feature"
+git push origin feature/your-idea
+# open a PR
+```
 
-Anything is welcome — better prompts, more diagram types, support for private repos, better voice controls.
+Good first issues: better Mermaid diagram prompts, more voice options, support for more file types, UI improvements.
 
 <br/>
 
 ---
+
+<br/>
 
 ## 📜 License
 
-MIT — do whatever you want with it.
+MIT — use it, fork it, build on it.
 
 <br/>
 
 ---
 
+<br/>
+
 <div align="center">
 
-**Built by [Nabil](https://github.com/your-username) · Hackathon 2025**
+**Built by [Nabil](https://github.com/nabilksabu) · Hackathon 2025**
+
+<br/>
 
 *"I just wanted to understand open source codebases without spending 3 hours confused."*
+
+<br/>
+
+⭐ Star this repo if it helped you
 
 </div>
