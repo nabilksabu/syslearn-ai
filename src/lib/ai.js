@@ -57,18 +57,30 @@ async function callGroq(prompt, isJson = false) {
 }
 
 export async function callAI(prompt, isJson = false) {
+  let gErr, qErr
   try { 
     return await callGemini(prompt, isJson)
   } catch (e) { 
-    console.warn('Gemini failed, trying Groq...', e.message) 
+    gErr = e.message
+    console.warn('Gemini failed, trying Groq...', gErr) 
   }
   try { 
     return await callGroq(prompt, isJson)
   } catch (e) { 
-    console.warn('Groq failed:', e.message) 
+    qErr = e.message
+    console.warn('Groq failed:', qErr) 
   }
-  throw new Error('Both AI services failed. Please check your API keys and internet connection.')
+  
+  if (gErr?.includes('429') || qErr?.includes('429')) {
+    throw new Error('AI services are temporarily rate-limited. Please wait a minute and try again.')
+  }
+  if (gErr?.includes('401') || qErr?.includes('401') || gErr?.includes('403') || qErr?.includes('403')) {
+    throw new Error('API key issue detected. Please check your Gemini and Groq keys in your .env file.')
+  }
+  
+  throw new Error(`Both AI services failed. \nGemini: ${gErr} \nGroq: ${qErr}`)
 }
+
 
 function parseJSON(raw) {
   try {
