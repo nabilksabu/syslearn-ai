@@ -41,34 +41,29 @@ export async function callAI(prompt) {
 }
 
 function parseJSON(raw) {
+  // Strip markdown fences
   let c = raw.replace(/```json\n?|```\n?/g, '').trim()
-  const s = c.indexOf('{'), e = c.lastIndexOf('}')
+  
+  // Find outermost { }
+  const s = c.indexOf('{')
+  const e = c.lastIndexOf('}')
   if (s !== -1 && e !== -1) c = c.slice(s, e + 1)
-  try { return JSON.parse(c) } catch { throw new Error('AI returned malformed JSON. Try again.') }
+  
+  // Fix common AI JSON mistakes
+  c = c
+    .replace(/,\s*}/g, '}')        // trailing commas in objects
+    .replace(/,\s*]/g, ']')        // trailing commas in arrays
+    .replace(/\n/g, ' ')           // newlines inside strings
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ') // control chars
+  
+  try {
+    return JSON.parse(c)
+  } catch {
+    // Last resort: try to extract just the fields we need
+    console.error('JSON parse failed, raw snippet:', c.slice(0, 500))
+    throw new Error('AI returned malformed JSON. Try again.')
+  }
 }
-
-export async function analyzeRepo({ owner, repo, files }) {
-  const filesText = files.map(f => `### ${f.path}\n\`\`\`\n${f.content.slice(0, 2500)}\n\`\`\``).join('\n\n')
-  const prompt = `You are a senior software engineer teaching system design.
-Repo: ${owner}/${repo}
-FILES:\n${filesText}
-
-Return ONLY raw JSON, no markdown, starting with { ending with }:
-{
-  "summary": "3-4 sentences what this does and why it exists",
-  "techStack": ["tech1"],
-  "architecture": "5-6 paragraphs: pattern used, data flow, design decisions, decoupling, scalability, what students must learn",
-  "components": [{ "name": "CamelCase", "role": "one sentence", "connects": ["Other"], "layer": "api|data|ui|infra|util" }],
-  "mermaid": "flowchart TD\n  A[Client] --> B[Server]\n  B --> C[DB]",
-  "lessons": [{ "title": "title", "explanation": "3-4 sentences with file references", "pattern": "Behavioral|Structural|Scalability|Security|Performance" }],
-  "deepDive": [{ "topic": "topic", "content": "4-5 sentences with function names" }],
-  "contributorGuide": "4-5 paragraphs on navigating and contributing",
-  "keyFiles": [{ "path": "path", "purpose": "one sentence", "type": "js|ts|py|go|md|json|yaml|other" }],
-  "codeSnippets": [{ "title": "How X works", "file": "path", "concept": "Redis caching / Auth middleware / etc", "code": "actual 10-20 line snippet", "explanation": "3-4 sentences on what this demonstrates" }]
-}`
-  return parseJSON(await callAI(prompt))
-}
-
 export async function chatWithRepo(question, ctx, history) {
   const h = history.slice(-8).map(m => `${m.role === 'user' ? 'Student' : 'Mentor'}: ${m.content}`).join('\n')
   const prompt = `Senior engineer mentoring about ${ctx.repoData?.owner}/${ctx.repoData?.repo}.
