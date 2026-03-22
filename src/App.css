@@ -365,3 +365,40 @@ body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:15
   .home-header{padding:1rem 1.25rem}
   .chat-page{height:calc(100vh - 80px)}
 }
+
+/* ── Settings Modal ─────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.modal-box {
+  width: 100%; max-width: 420px;
+  padding: 2rem; border-radius: 16px;
+  display: flex; flex-direction: column; gap: .5rem;
+}
+.modal-title { font-size: 1.2rem; font-weight: 700; color: var(--text); margin-bottom: .25rem; }
+.modal-sub   { font-size: .8rem; color: var(--muted); margin-bottom: .75rem; }
+.modal-label { font-size: .78rem; color: var(--muted); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; margin-top: .25rem; }
+.modal-input {
+  width: 100%; padding: .65rem .9rem;
+  background: rgba(255,255,255,.05); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text); font-size: .9rem;
+  font-family: 'JetBrains Mono', monospace;
+  outline: none; box-sizing: border-box;
+}
+.modal-input:focus { border-color: var(--blue); }
+.modal-link { font-size: .75rem; color: var(--blue); text-decoration: none; }
+.modal-link:hover { text-decoration: underline; }
+.modal-actions { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 1rem; }
+.modal-cancel {
+  padding: .55rem 1.2rem; border-radius: 8px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); cursor: pointer; font-size: .875rem;
+}
+.modal-save {
+  padding: .55rem 1.4rem; border-radius: 8px; border: none;
+  background: var(--blue); color: #fff; cursor: pointer;
+  font-size: .875rem; font-weight: 600;
+}
+.modal-save:hover { opacity: .9; }

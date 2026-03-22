@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import mermaid from 'mermaid'
 import { fetchRepo } from './lib/github'
-import { analyzeRepo, chatWithRepo, deepDive as deepDiveAI } from './lib/ai'
+import { analyzeRepo, chatWithRepo, deepDive as deepDiveAI, getGeminiKey, getGroqKey } from './lib/ai'
 import { auth, signInWithGoogle, signOut, onAuthStateChanged, saveAnalysis, getRecentAnalyses } from './lib/firebase'
 import './App.css'
 
@@ -105,6 +105,9 @@ export default function App() {
   const [ddResult, setDdResult] = useState('')
   const [ddLoading, setDdLoading] = useState(false)
   const [toast, setToast] = useState('')
+  const [showSettings, setShowSettings] = useState(false)
+  const [settingsGemini, setSettingsGemini] = useState('')
+  const [settingsGroq, setSettingsGroq] = useState('')
   const [lessonsRead, setLessonsRead] = useState(new Set())
   const chatEndRef = useRef(null)
   const mainRef = useRef(null)
@@ -121,11 +124,27 @@ export default function App() {
 
   async function renderDiagram(code) {
     const clean = sanitizeMermaid(code)
-    try { const {svg} = await mermaid.render('d'+Date.now(), clean); setDiagramSvg(svg); return } catch {}
+    // mermaid v11 requires a real DOM container element as 2nd arg
+    const mkContainer = () => {
+      const el = document.createElement('div')
+      el.style.cssText = 'position:absolute;left:-9999px;top:-9999px;visibility:hidden'
+      document.body.appendChild(el)
+      return el
+    }
+    const tryRender = async (src) => {
+      const el = mkContainer()
+      try {
+        const { svg } = await mermaid.render('md' + Date.now(), src, el)
+        return svg
+      } finally {
+        el.remove()
+      }
+    }
+    try { const svg = await tryRender(clean); setDiagramSvg(svg); return } catch(e) { console.warn('Mermaid primary render failed:', e?.message) }
     if (analysis?.components?.length) {
-      const nodes = analysis.components.map(c=>`  ${c.name.replace(/\W/g,'')}[${c.name}]`).join('\n')
-      const edges = analysis.components.flatMap(c=>(c.connects||[]).map(x=>`  ${c.name.replace(/\W/g,'')} --> ${x.replace(/\W/g,'')}`)).join('\n')
-      try { const {svg} = await mermaid.render('fb'+Date.now(), `flowchart TD\n${nodes}\n${edges}`); setDiagramSvg(svg); return } catch {}
+      const nodes = analysis.components.map(c=>`  ${c.name.replace(/[^\w]/g,'_')}["${c.name}"]`).join('\n')
+      const edges = analysis.components.flatMap(c=>(c.connects||[]).map(x=>`  ${c.name.replace(/[^\w]/g,'_')} --> ${x.replace(/[^\w]/g,'_')}`)).join('\n')
+      try { const svg = await tryRender(`flowchart TD\n${nodes}\n${edges}`); setDiagramSvg(svg); return } catch(e) { console.warn('Mermaid fallback render failed:', e?.message) }
     }
     setDiagramSvg('<p class="diag-err">Could not render diagram. Try re-analyzing.</p>')
   }
@@ -191,9 +210,44 @@ export default function App() {
   const progress = Math.round((visited.size/NAV.length)*100)
   const unread = chatHistory.filter(m=>m.role==='assistant').length - 1
 
+
+  // ── SETTINGS MODAL ──────────────────────────────────────────────
+  function openSettings() {
+    setSettingsGemini(getGeminiKey())
+    setSettingsGroq(getGroqKey())
+    setShowSettings(true)
+  }
+  function saveSettings() {
+    if (settingsGemini.trim()) localStorage.setItem('sl_gemini_key', settingsGemini.trim())
+    else localStorage.removeItem('sl_gemini_key')
+    if (settingsGroq.trim()) localStorage.setItem('sl_groq_key', settingsGroq.trim())
+    else localStorage.removeItem('sl_groq_key')
+    setShowSettings(false)
+    showToast('✓ API keys saved!')
+  }
+  const SettingsModal = showSettings ? (
+    <div className="modal-overlay" onClick={()=>setShowSettings(false)}>
+      <div className="modal-box glass" onClick={e=>e.stopPropagation()}>
+        <div className="modal-title">⚙ API Keys</div>
+        <p className="modal-sub">Keys are saved in your browser only — never sent anywhere else.</p>
+        <label className="modal-label">Gemini API Key</label>
+        <input className="modal-input" type="password" placeholder="AIza..." value={settingsGemini} onChange={e=>setSettingsGemini(e.target.value)} autoComplete="off"/>
+        <a className="modal-link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer">Get a free Gemini key →</a>
+        <label className="modal-label" style={{marginTop:'1rem'}}>Groq API Key (fallback)</label>
+        <input className="modal-input" type="password" placeholder="gsk_..." value={settingsGroq} onChange={e=>setSettingsGroq(e.target.value)} autoComplete="off"/>
+        <a className="modal-link" href="https://console.groq.com/keys" target="_blank" rel="noreferrer">Get a free Groq key →</a>
+        <div className="modal-actions">
+          <button className="modal-cancel" onClick={()=>setShowSettings(false)}>Cancel</button>
+          <button className="modal-save" onClick={saveSettings}>Save keys</button>
+        </div>
+      </div>
+    </div>
+  ) : null
+
   // ── LOADING ──────────────────────────────────────────────────────
   if (phase==='loading') return (
     <div className="load-screen">
+      {SettingsModal}
       <div className="particles">{Array.from({length:20}).map((_,i)=><div key={i} className="particle" style={{'--i':i}}/>)}</div>
       <div className="load-card glass">
         <div className="load-eyebrow">Analyzing repository</div>
@@ -219,6 +273,7 @@ export default function App() {
   // ── LESSON ───────────────────────────────────────────────────────
   if (phase==='lesson') return (
     <div className="lesson-page" data-theme={theme}>
+      {SettingsModal}
       {toast&&<div className="toast">{toast}</div>}
 
       {/* SIDEBAR */}
@@ -264,6 +319,7 @@ export default function App() {
         <div className="sb-actions">
           <button className="sb-action-btn" onClick={share} title="Share">⬡</button>
           <button className="sb-action-btn" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')} title="Toggle theme">{theme==='dark'?'☀':'🌙'}</button>
+          <button className="sb-action-btn" onClick={openSettings} title="API Keys">⚙</button>
           <button className="sb-action-btn new-btn" onClick={()=>{setPhase('home');setAnalysis(null);stopSpeaking();window.history.pushState({},'','/')}}>← New</button>
         </div>
       </aside>
@@ -641,11 +697,13 @@ export default function App() {
   // ── HOME ─────────────────────────────────────────────────────────
   return (
     <div className="home-page" data-theme={theme}>
+      {SettingsModal}
       <div className="home-bg"><div className="bg-grid"/><div className="bg-glow g1"/><div className="bg-glow g2"/></div>
 
       <header className="home-header">
         <div className="header-brand"><span className="logo-mark">S</span><span className="logo-name">SysLearn</span></div>
         <div className="header-right">
+          <button className="icon-btn" onClick={openSettings} title="API Keys">⚙</button>
           <button className="icon-btn" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')}>{theme==='dark'?'☀':'🌙'}</button>
           {authLoading
             ? <div className="auth-skeleton"/>
