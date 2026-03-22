@@ -1,107 +1,95 @@
-const GEMINI_URL = '/gemini/v1beta/models/gemini-1.5-flash-latest:generateContent'
-const GROQ_URL = '/groq/openai/v1/chat/completions'
+const GEMINI_KEY = import.meta.env.VITE_GEMINI_KEY
+const GROQ_KEY = import.meta.env.VITE_GROQ_KEY
+const GEMINI_URL = import.meta.env.DEV
+  ? '/gemini/v1beta/models/gemini-1.5-flash:generateContent'
+  : 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
 
-async function callGemini(prompt, apiKey) {
-  const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
+const GROQ_URL = import.meta.env.DEV
+  ? '/groq/openai/v1/chat/completions'
+  : 'https://api.groq.com/openai/v1/chat/completions'
+async function callGemini(prompt) {
+  if (!GEMINI_KEY) throw new Error('No Gemini key in .env')
+  const res = await fetch(`${GEMINI_URL}?key=${GEMINI_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
+      generationConfig: { temperature: 0.4, maxOutputTokens: 8192 }
     })
   })
-  if (!res.ok) {
-    const err = await res.text()
-    console.error('Gemini error:', res.status, err)
-    throw new Error(`Gemini ${res.status}: ${err}`)
-  }
+  if (!res.ok) { const e = await res.text(); console.error('Gemini:', res.status, e); throw new Error(`Gemini ${res.status}`) }
   const data = await res.json()
   return data.candidates[0].content.parts[0].text
 }
 
-async function callGroq(prompt, apiKey) {
+async function callGroq(prompt) {
+  if (!GROQ_KEY) throw new Error('No Groq key in .env')
   const res = await fetch(GROQ_URL, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 4096,
-      temperature: 0.7
-    })
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
+    body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'user', content: prompt }], max_tokens: 8192, temperature: 0.4 })
   })
-  if (!res.ok) {
-    const err = await res.text()
-    console.error('Groq error:', res.status, err)
-    throw new Error(`Groq ${res.status}: ${err}`)
-  }
+  if (!res.ok) { const e = await res.text(); console.error('Groq:', res.status, e); throw new Error(`Groq ${res.status}`) }
   const data = await res.json()
   return data.choices[0].message.content
 }
 
-export async function callAI(prompt, geminiKey, groqKey) {
-  if (geminiKey) {
-    try { return await callGemini(prompt, geminiKey) } catch (e) { console.warn('Gemini failed, trying Groq', e) }
-  }
-  if (groqKey) {
-    try { return await callGroq(prompt, groqKey) } catch (e) { console.warn('Groq failed', e) }
-  }
-  throw new Error('Both APIs failed. Check your keys or wait 60s.')
+export async function callAI(prompt) {
+  try { const r = await callGemini(prompt); if (r) return r } catch (e) { console.warn('Gemini failed, trying Groq:', e.message) }
+  try { const r = await callGroq(prompt); if (r) return r } catch (e) { console.warn('Groq also failed:', e.message) }
+  throw new Error('Both APIs failed. Check your .env keys.')
 }
 
-export async function analyzeRepo({ owner, repo, files }, geminiKey, groqKey) {
-  const filesText = files.map(f => `### ${f.path}\n${f.content}`).join('\n\n')
+function parseJSON(raw) {
+  let c = raw.replace(/```json\n?|```\n?/g, '').trim()
+  const s = c.indexOf('{'), e = c.lastIndexOf('}')
+  if (s !== -1 && e !== -1) c = c.slice(s, e + 1)
+  try { return JSON.parse(c) } catch { throw new Error('AI returned malformed JSON. Try again.') }
+}
 
-  const prompt = `You are a senior software engineer teaching system design to students.
+export async function analyzeRepo({ owner, repo, files }) {
+  const filesText = files.map(f => `### ${f.path}\n\`\`\`\n${f.content.slice(0, 2500)}\n\`\`\``).join('\n\n')
+  const prompt = `You are a senior software engineer teaching system design.
+Repo: ${owner}/${repo}
+FILES:\n${filesText}
 
-Analyze this GitHub repository: ${owner}/${repo}
-
-Here are the key files:
-${filesText}
-
-Return a JSON object (no markdown, no backticks, just raw JSON) with this exact shape:
+Return ONLY raw JSON, no markdown, starting with { ending with }:
 {
-  "summary": "2-3 sentence plain English description of what this project does",
-  "techStack": ["list", "of", "technologies", "detected"],
-  "architecture": "3-4 paragraphs explaining the system design: what pattern it uses, how data flows, key architectural decisions, and what a student should learn from this",
-  "components": [
-    { "name": "ComponentName", "role": "what it does", "connects": ["OtherComponent"] }
-  ],
-  "mermaid": "a valid mermaid flowchart diagram (flowchart TD) showing the main components and data flow. Use simple node names, no special characters",
-  "lessons": [
-    { "title": "Lesson title", "explanation": "2-3 sentence explanation of a system design concept visible in this codebase" }
-  ],
-  "codeExplainer": "explain the codebase structure to someone wanting to contribute: where to start, what the main files do, how to find your way around"
+  "summary": "3-4 sentences what this does and why it exists",
+  "techStack": ["tech1"],
+  "architecture": "5-6 paragraphs: pattern used, data flow, design decisions, decoupling, scalability, what students must learn",
+  "components": [{ "name": "CamelCase", "role": "one sentence", "connects": ["Other"], "layer": "api|data|ui|infra|util" }],
+  "mermaid": "flowchart TD\n  A[Client] --> B[Server]\n  B --> C[DB]",
+  "lessons": [{ "title": "title", "explanation": "3-4 sentences with file references", "pattern": "Behavioral|Structural|Scalability|Security|Performance" }],
+  "deepDive": [{ "topic": "topic", "content": "4-5 sentences with function names" }],
+  "contributorGuide": "4-5 paragraphs on navigating and contributing",
+  "keyFiles": [{ "path": "path", "purpose": "one sentence", "type": "js|ts|py|go|md|json|yaml|other" }],
+  "codeSnippets": [{ "title": "How X works", "file": "path", "concept": "Redis caching / Auth middleware / etc", "code": "actual 10-20 line snippet", "explanation": "3-4 sentences on what this demonstrates" }]
 }`
-
-  const raw = await callAI(prompt, geminiKey, groqKey)
-  const clean = raw.replace(/```json|```/g, '').trim()
-  try {
-    return JSON.parse(clean)
-  } catch {
-    const match = clean.match(/\{[\s\S]*\}/)
-    if (match) return JSON.parse(match[0])
-    throw new Error('AI returned invalid JSON')
-  }
+  return parseJSON(await callAI(prompt))
 }
 
-export async function chatWithRepo(question, repoContext, history, geminiKey, groqKey) {
-  const historyText = history.slice(-6).map(m => `${m.role === 'user' ? 'Student' : 'Mentor'}: ${m.content}`).join('\n')
+export async function chatWithRepo(question, ctx, history) {
+  const h = history.slice(-8).map(m => `${m.role === 'user' ? 'Student' : 'Mentor'}: ${m.content}`).join('\n')
+  const prompt = `Senior engineer mentoring about ${ctx.repoData?.owner}/${ctx.repoData?.repo}.
+Summary: ${ctx.summary}
+Stack: ${ctx.techStack?.join(', ')}
+Architecture: ${ctx.architecture?.slice(0, 500)}
+Key files: ${ctx.keyFiles?.map(f => `${f.path}: ${f.purpose}`).join(', ')}
 
-  const prompt = `You are a senior engineer mentoring a student about this codebase.
+${h}
+Student: ${question}
 
-Repo context:
-${JSON.stringify(repoContext, null, 2)}
+Answer 4-6 sentences. Reference actual files and patterns. Teach like a mentor, not documentation.`
+  return await callAI(prompt)
+}
 
-Recent conversation:
-${historyText}
+export async function deepDive(fileName, fileContent, question) {
+  const prompt = `Senior engineer doing deep code review.
+File: ${fileName}
+\`\`\`\n${fileContent.slice(0, 4000)}\n\`\`\`
+Question: ${question || 'Explain this file deeply — what it does, how it works, key patterns, what a contributor must know.'}
 
-Student asks: ${question}
-
-Answer in 3-5 sentences. Be direct, specific to this codebase, and teach like a mentor — not like documentation. Use plain language.`
-
-  return await callAI(prompt, geminiKey, groqKey)
+6-8 sentences. Reference specific functions and design decisions. Explain WHY, not just what. End with what someone needs to understand before modifying this file.`
+  return await callAI(prompt)
 }
