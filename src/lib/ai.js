@@ -1,95 +1,188 @@
 const GEMINI_KEY = import.meta.env.VITE_GEMINI_KEY
 const GROQ_KEY = import.meta.env.VITE_GROQ_KEY
+
 const GEMINI_URL = import.meta.env.DEV
-  ? '/gemini/v1beta/models/gemini-1.5-flash:generateContent'
-  : 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
+  ? '/gemini/v1beta/models/gemini-1.5-flash-latest:generateContent'
+  : 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent'
 
 const GROQ_URL = import.meta.env.DEV
   ? '/groq/openai/v1/chat/completions'
   : 'https://api.groq.com/openai/v1/chat/completions'
-async function callGemini(prompt) {
-  if (!GEMINI_KEY) throw new Error('No Gemini key in .env')
+
+async function callGemini(prompt, isJson = false) {
+  if (!GEMINI_KEY) throw new Error('No Gemini key')
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: { 
+      temperature: 0.1, 
+      maxOutputTokens: 8192,
+      responseMimeType: isJson ? "application/json" : "text/plain"
+    }
+  }
   const res = await fetch(`${GEMINI_URL}?key=${GEMINI_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.4, maxOutputTokens: 8192 }
-    })
+    body: JSON.stringify(body)
   })
-  if (!res.ok) { const e = await res.text(); console.error('Gemini:', res.status, e); throw new Error(`Gemini ${res.status}`) }
+  if (!res.ok) { 
+    const e = await res.json().catch(() => ({})); 
+    console.error('Gemini Error:', res.status, e); 
+    throw new Error(`Gemini ${res.status}: ${e.error?.message || 'Unknown error'}`) 
+  }
   const data = await res.json()
-  return data.candidates[0].content.parts[0].text
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+  if (!text) throw new Error('Gemini returned empty response')
+  return text
 }
 
-async function callGroq(prompt) {
-  if (!GROQ_KEY) throw new Error('No Groq key in .env')
+async function callGroq(prompt, isJson = false) {
+  if (!GROQ_KEY) throw new Error('No Groq key')
+  const body = {
+    model: 'llama-3.3-70b-versatile',
+    messages: [{ role: 'user', content: prompt }],
+    max_tokens: 8192, 
+    temperature: 0.1
+  }
+  if (isJson) {
+    body.response_format = { type: "json_object" }
+  }
   const res = await fetch(GROQ_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
-    body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'user', content: prompt }], max_tokens: 8192, temperature: 0.4 })
+    body: JSON.stringify(body)
   })
-  if (!res.ok) { const e = await res.text(); console.error('Groq:', res.status, e); throw new Error(`Groq ${res.status}`) }
+  if (!res.ok) { const e = await res.text(); console.error('Groq Error:', res.status, e); throw new Error(`Groq ${res.status}`) }
   const data = await res.json()
   return data.choices[0].message.content
 }
 
-export async function callAI(prompt) {
-  try { const r = await callGemini(prompt); if (r) return r } catch (e) { console.warn('Gemini failed, trying Groq:', e.message) }
-  try { const r = await callGroq(prompt); if (r) return r } catch (e) { console.warn('Groq also failed:', e.message) }
-  throw new Error('Both APIs failed. Check your .env keys.')
+export async function callAI(prompt, isJson = false) {
+  try { 
+    return await callGemini(prompt, isJson)
+  } catch (e) { 
+    console.warn('Gemini failed, trying Groq...', e.message) 
+  }
+  try { 
+    return await callGroq(prompt, isJson)
+  } catch (e) { 
+    console.warn('Groq failed:', e.message) 
+  }
+  throw new Error('Both AI services failed. Please check your API keys and internet connection.')
 }
 
 function parseJSON(raw) {
-  let c = raw.replace(/```json\n?|```\n?/g, '').trim()
-  const s = c.indexOf('{'), e = c.lastIndexOf('}')
-  if (s !== -1 && e !== -1) c = c.slice(s, e + 1)
-  try { return JSON.parse(c) } catch { throw new Error('AI returned malformed JSON. Try again.') }
+  try {
+    // If it's already a clean JSON string from native JSON mode, this should just work
+    return JSON.parse(raw.trim())
+  } catch (err) {
+    // Fallback for non-native mode or stubborn models
+    let c = raw.replace(/```json\n?|```\n?/g, '').trim()
+    const s = c.indexOf('{'), e = c.lastIndexOf('}')
+    if (s !== -1 && e !== -1) c = c.slice(s, e + 1)
+    try { 
+      return JSON.parse(c) 
+    } catch (e2) {
+      console.error('JSON parse failed:', c.slice(0, 500))
+      throw new Error('AI returned malformed JSON. Please try again.')
+    }
+  }
 }
 
 export async function analyzeRepo({ owner, repo, files }) {
-  const filesText = files.map(f => `### ${f.path}\n\`\`\`\n${f.content.slice(0, 2500)}\n\`\`\``).join('\n\n')
-  const prompt = `You are a senior software engineer teaching system design.
-Repo: ${owner}/${repo}
-FILES:\n${filesText}
+  const filesText = files.map(f => `### ${f.path}\n\`\`\`\n${f.content.slice(0, 2000)}\n\`\`\``).join('\n\n')
 
-Return ONLY raw JSON, no markdown, starting with { ending with }:
+  const prompt = `You are a senior software engineer analyzing the repository ${owner}/${repo}.
+FILES:
+${filesText}
+
+Task: Return a detailed JSON object with this exact structure:
 {
-  "summary": "3-4 sentences what this does and why it exists",
-  "techStack": ["tech1"],
-  "architecture": "5-6 paragraphs: pattern used, data flow, design decisions, decoupling, scalability, what students must learn",
-  "components": [{ "name": "CamelCase", "role": "one sentence", "connects": ["Other"], "layer": "api|data|ui|infra|util" }],
-  "mermaid": "flowchart TD\n  A[Client] --> B[Server]\n  B --> C[DB]",
-  "lessons": [{ "title": "title", "explanation": "3-4 sentences with file references", "pattern": "Behavioral|Structural|Scalability|Security|Performance" }],
-  "deepDive": [{ "topic": "topic", "content": "4-5 sentences with function names" }],
-  "contributorGuide": "4-5 paragraphs on navigating and contributing",
-  "keyFiles": [{ "path": "path", "purpose": "one sentence", "type": "js|ts|py|go|md|json|yaml|other" }],
-  "codeSnippets": [{ "title": "How X works", "file": "path", "concept": "Redis caching / Auth middleware / etc", "code": "actual 10-20 line snippet", "explanation": "3-4 sentences on what this demonstrates" }]
-}`
-  return parseJSON(await callAI(prompt))
+  "summary": "2-3 sentences: purpose and problem solved",
+  "techStack": ["tech1", "tech2"],
+  "architecture": "3 detailed paragraphs on pattern, data flow, and design decisions.",
+  "components": [
+    { "name": "Name", "role": "description", "connects": ["Other"], "layer": "api|data|ui|infra|util" }
+  ],
+  "mermaid": "flowchart TD\\n  A --> B",
+  "lessons": [
+    {
+      "title": "Title",
+      "explanation": "Usage in this codebase (reference files).",
+      "pattern": "Behavioral|Structural|Creational|Scalability|Security|Performance|Reliability",
+      "difficulty": "beginner|intermediate|advanced",
+      "realWorldUse": "One sentence"
+    }
+  ],
+  "deepDive": [
+    { "topic": "Topic", "content": "3-4 sentences with file references.", "keyFiles": ["file.js"] }
+  ],
+  "contributorGuide": "3 paragraphs on starting, key files, and conventions.",
+  "keyFiles": [
+    { "path": "path", "purpose": "description", "type": "js|ts|py|go|rs|md|json|yaml|other" }
+  ],
+  "codeSnippets": [
+    {
+      "title": "Snippet Title",
+      "file": "path",
+      "concept": "concept name",
+      "code": "max 15 lines of code",
+      "explanation": "3 sentences max",
+      "whyItMatters": "One sentence"
+    }
+  ],
+  "systemDesignConcepts": [
+    { "concept": "Name", "howUsedHere": "Usage here", "learnMore": "Where to look" }
+  ],
+  "gettingStarted": {
+    "firstStep": "First action",
+    "readingOrder": ["file1", "file2"],
+    "setupCommands": ["npm install"],
+    "goodFirstIssues": ["Idea"]
+  }
 }
 
-export async function chatWithRepo(question, ctx, history) {
-  const h = history.slice(-8).map(m => `${m.role === 'user' ? 'Student' : 'Mentor'}: ${m.content}`).join('\n')
-  const prompt = `Senior engineer mentoring about ${ctx.repoData?.owner}/${ctx.repoData?.repo}.
-Summary: ${ctx.summary}
-Stack: ${ctx.techStack?.join(', ')}
-Architecture: ${ctx.architecture?.slice(0, 500)}
-Key files: ${ctx.keyFiles?.map(f => `${f.path}: ${f.purpose}`).join(', ')}
+Return ONLY the JSON object.`
 
-${h}
-Student: ${question}
+  const raw = await callAI(prompt, true)
+  return parseJSON(raw)
+}
 
-Answer 4-6 sentences. Reference actual files and patterns. Teach like a mentor, not documentation.`
+
+
+export async function chatWithRepo(question, repoContext, history) {
+  const historyText = history.slice(-8).map(m => `${m.role === 'user' ? 'Student' : 'Mentor'}: ${m.content}`).join('\n')
+
+  const prompt = `You are a senior software engineer mentoring a student about ${repoContext.repoData?.owner}/${repoContext.repoData?.repo}.
+
+Repo context:
+- Summary: ${repoContext.summary}
+- Stack: ${repoContext.techStack?.join(', ')}
+- Architecture: ${repoContext.architecture?.slice(0, 500)}
+- Key files: ${repoContext.keyFiles?.map(f => `${f.path}: ${f.purpose}`).slice(0, 5).join(', ')}
+
+Recent conversation:
+${historyText}
+
+Student asks: ${question}
+
+Answer in 4-6 sentences. Be specific — name actual files and functions from this codebase when relevant. Teach like a senior engineer explaining to a junior: direct, practical, with context on WHY not just WHAT.`
+
   return await callAI(prompt)
 }
 
 export async function deepDive(fileName, fileContent, question) {
-  const prompt = `Senior engineer doing deep code review.
-File: ${fileName}
-\`\`\`\n${fileContent.slice(0, 4000)}\n\`\`\`
-Question: ${question || 'Explain this file deeply — what it does, how it works, key patterns, what a contributor must know.'}
+  const prompt = `You are a senior software engineer doing a detailed code review and explanation.
 
-6-8 sentences. Reference specific functions and design decisions. Explain WHY, not just what. End with what someone needs to understand before modifying this file.`
+File being analyzed: ${fileName}
+
+File contents:
+\`\`\`
+${fileContent.slice(0, 4000)}
+\`\`\`
+
+Question: ${question || 'Give a comprehensive explanation of this file: what it does, how it works, the key functions and their responsibilities, design patterns used, and what a contributor needs to understand before modifying it.'}
+
+Provide a thorough 6-8 sentence explanation. Reference specific function names, variable names, and line patterns you can see. Explain the WHY behind design choices, not just the what. End with one concrete tip for someone who wants to modify or extend this file.`
+
   return await callAI(prompt)
 }
