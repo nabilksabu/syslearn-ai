@@ -40,9 +40,9 @@ export async function fetchRepo(url, githubToken = null) {
   const [, owner, repo] = match
   const cleanRepo = repo.replace(/\.git$/, '').split('/')[0]
 
-  const headers = {}
-  if (githubToken) headers['Authorization'] = `token ${githubToken}`
-
+const headers = {}
+const githubToken = import.meta.env.VITE_GITHUB_TOKEN
+if (githubToken) headers['Authorization'] = `token ${githubToken}`
   // Get file tree
   const treeRes = await fetch(
     `https://api.github.com/repos/${owner}/${cleanRepo}/git/trees/HEAD?recursive=1`,
