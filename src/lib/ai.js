@@ -1,8 +1,12 @@
 const GEMINI_KEY = import.meta.env.VITE_GEMINI_KEY
 const GROQ_KEY = import.meta.env.VITE_GROQ_KEY
-const GEMINI_URL = '/gemini/v1beta/models/gemini-2.0-flash:generateContent'
-const GROQ_URL = '/groq/openai/v1/chat/completions'
+const GEMINI_URL = import.meta.env.DEV
+  ? '/gemini/v1beta/models/gemini-1.5-flash:generateContent'
+  : 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
 
+const GROQ_URL = import.meta.env.DEV
+  ? '/groq/openai/v1/chat/completions'
+  : 'https://api.groq.com/openai/v1/chat/completions'
 async function callGemini(prompt) {
   if (!GEMINI_KEY) throw new Error('No Gemini key in .env')
   const res = await fetch(`${GEMINI_URL}?key=${GEMINI_KEY}`, {
