@@ -1,3 +1,34 @@
+const PRIORITY_FILES = [
+  'readme.md', 'readme.txt', 'readme',
+  'package.json', 'requirements.txt', 'go.mod', 'cargo.toml', 'pom.xml',
+  'main.py', 'app.py', 'server.py', 'index.js', 'main.js', 'server.js',
+  'app.js', 'main.ts', 'app.ts', 'server.ts', 'index.ts',
+  'main.go', 'main.rs', 'main.java', 'application.java',
+  'docker-compose.yml', 'dockerfile', '.env.example',
+]
+
+const SKIP_PATTERNS = [
+  'node_modules', '.git', 'dist', 'build', '.next', '__pycache__',
+  'vendor', '.cache', 'coverage', '.nyc_output', 'test', 'tests',
+  'spec', '__tests__', '.lock', 'package-lock', 'yarn.lock',
+  'pnpm-lock', '.min.js', '.min.css', '.map', '.snap'
+]
+
+function scoreFile(path) {
+  const lower = path.toLowerCase()
+  const filename = lower.split('/').pop()
+  for (const skip of SKIP_PATTERNS) {
+    if (lower.includes(skip)) return -1
+  }
+  const priorityIdx = PRIORITY_FILES.indexOf(filename)
+  if (priorityIdx !== -1) return 100 - priorityIdx
+  if (lower.match(/\.(md|txt)$/)) return 60
+  if (lower.match(/src\/|lib\/|core\/|api\/|routes\/|controllers\/|services\//)) return 50
+  if (lower.match(/\.(js|ts|py|go|rs|java|jsx|tsx)$/)) return 40
+  if (lower.match(/\.(json|yaml|yml|toml|env)$/)) return 30
+  return 10
+}
+
 export async function fetchRepo(url) {
   const match = url.match(/github\.com\/([^/]+)\/([^/]+)/)
   if (!match) throw new Error('Invalid GitHub URL')
